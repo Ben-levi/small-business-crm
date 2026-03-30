@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CRM — Orders</title>
+  <title>CRM — הזמנות</title>
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://browser.sentry-cdn.com/8.44.0/bundle.min.js" crossorigin="anonymous"></script>
   <script>
@@ -13,97 +13,99 @@
 </head>
 <body>
 
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#main-content" class="skip-link">דלג לתוכן הראשי</a>
 
-<nav aria-label="Main navigation">
-  <span class="logo">MyBusiness CRM</span>
+<nav aria-label="ניווט ראשי">
+  <span class="logo">CRM העסק שלי</span>
   <ul>
-    <li><a href="/" target="_blank">Public site ↗</a></li>
-    <li><a href="#" id="logoutBtn">Logout</a></li>
+    <li><a href="/" target="_blank">אתר הבית ↗</a></li>
+    <li><a href="#" id="logoutBtn">יציאה</a></li>
   </ul>
 </nav>
 
 <div class="crm-layout">
-  <aside class="sidebar" aria-label="CRM navigation">
-    <a href="/crm/customers.html">Customers</a>
-    <a href="/crm/orders.html" class="active" aria-current="page">Orders</a>
+  <aside class="sidebar" aria-label="ניווט CRM">
+    <a href="/crm/customers.html">לקוחות</a>
+    <a href="/crm/orders.html" class="active" aria-current="page">הזמנות</a>
   </aside>
 
   <main class="crm-main" id="main-content" tabindex="-1">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
-      <h2 style="font-size:1.5rem;">Orders</h2>
-      <button class="btn btn-primary btn-sm" id="addBtn">+ New Order</button>
+      <h2 style="font-size:1.5rem;">הזמנות</h2>
+      <button class="btn btn-primary btn-sm" id="addBtn">+ הזמנה חדשה</button>
     </div>
 
-    <div class="toolbar" role="search" aria-label="Filter orders">
-      <label for="statusFilter" class="visually-hidden">Filter by status</label>
-      <select id="statusFilter" aria-label="Filter by status">
-        <option value="">All statuses</option>
-        <option value="pending">Pending</option>
-        <option value="processing">Processing</option>
-        <option value="shipped">Shipped</option>
-        <option value="delivered">Delivered</option>
+    <div class="toolbar" role="search" aria-label="סינון הזמנות">
+      <label for="statusFilter" class="visually-hidden">סינון לפי סטטוס</label>
+      <select id="statusFilter" aria-label="סינון לפי סטטוס">
+        <option value="">כל הסטטוסים</option>
+        <option value="pending">ממתין</option>
+        <option value="processing">בעיבוד</option>
+        <option value="shipped">נשלח</option>
+        <option value="delivered">נמסר</option>
       </select>
-      <input type="date" id="fromDate" aria-label="From date" title="From date" />
-      <input type="date" id="toDate"   aria-label="To date"   title="To date" />
+      <input type="date" id="fromDate" aria-label="מתאריך" title="מתאריך" />
+      <input type="date" id="toDate"   aria-label="עד תאריך" title="עד תאריך" />
     </div>
 
     <div id="alert" class="alert hidden" role="alert" aria-live="polite"></div>
 
     <div class="card">
       <div class="table-wrap">
-        <table aria-label="Orders list">
+        <table aria-label="רשימת הזמנות">
           <thead>
             <tr>
               <th scope="col">#</th>
-              <th scope="col">Customer</th>
-              <th scope="col">Status</th>
-              <th scope="col">Total</th>
-              <th scope="col">Date</th>
-              <th scope="col"><span class="visually-hidden">Actions</span></th>
+              <th scope="col">לקוח</th>
+              <th scope="col">סטטוס</th>
+              <th scope="col">סכום</th>
+              <th scope="col">תאריך</th>
+              <th scope="col"><span class="visually-hidden">פעולות</span></th>
             </tr>
           </thead>
           <tbody id="ordersTbody">
-            <tr><td colspan="6" style="text-align:center;color:var(--muted)">Loading…</td></tr>
+            <tr><td colspan="6" style="text-align:center;color:var(--muted)">טוען...</td></tr>
           </tbody>
         </table>
       </div>
-      <nav class="pagination" aria-label="Orders pagination">
+      <nav class="pagination" aria-label="עימוד הזמנות">
         <span id="pageInfo" aria-live="polite"></span>
-        <button id="prevBtn" disabled aria-label="Previous page">← Prev</button>
-        <button id="nextBtn" disabled aria-label="Next page">Next →</button>
+        <button id="prevBtn" disabled aria-label="עמוד קודם">קודם →</button>
+        <button id="nextBtn" disabled aria-label="עמוד הבא">← הבא</button>
       </nav>
     </div>
   </main>
 </div>
 
-<!-- New/Edit Order Modal -->
+<!-- מודל הזמנה חדשה/עריכה -->
 <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;">
   <div class="card" style="width:100%;max-width:480px;margin:1rem;">
-    <h3 id="modalTitle" style="margin-bottom:1rem;">New Order</h3>
+    <h3 id="modalTitle" style="margin-bottom:1rem;">הזמנה חדשה</h3>
     <form id="orderForm">
       <input type="hidden" id="orderId" />
       <div class="form-group">
-        <label for="oCustomerId">Customer ID</label>
-        <input type="number" id="oCustomerId" required aria-required="true" placeholder="Enter customer ID" />
-      </div>
-      <div class="form-group">
-        <label for="oStatus">Status</label>
-        <select id="oStatus">
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
+        <label for="oCustomerId">לקוח</label>
+        <select id="oCustomerId" required aria-required="true">
+          <option value="">בחר לקוח...</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="oTotal">Total ($)</label>
+        <label for="oStatus">סטטוס</label>
+        <select id="oStatus">
+          <option value="pending">ממתין</option>
+          <option value="processing">בעיבוד</option>
+          <option value="shipped">נשלח</option>
+          <option value="delivered">נמסר</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="oTotal">סכום (₪)</label>
         <input type="number" id="oTotal" min="0" step="0.01" placeholder="0.00" />
       </div>
       <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-        <button type="button" class="btn btn-outline" id="cancelBtn">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-outline" id="cancelBtn">ביטול</button>
+        <button type="submit" class="btn btn-primary">שמור</button>
       </div>
     </form>
   </div>
@@ -119,8 +121,11 @@
   const prevBtn  = document.getElementById('prevBtn');
   const nextBtn  = document.getElementById('nextBtn');
   const pageInfo = document.getElementById('pageInfo');
+  const alertEl  = document.getElementById('alert');
   const modal    = document.getElementById('modal');
   const form     = document.getElementById('orderForm');
+
+  const statusHe = { pending: 'ממתין', processing: 'בעיבוד', shipped: 'נשלח', delivered: 'נמסר' };
 
   let page = 1;
   const LIMIT = 15;
@@ -141,23 +146,23 @@
     const data = await res.json();
 
     tbody.innerHTML = data.orders.length === 0
-      ? `<tr><td colspan="6" style="text-align:center;color:var(--muted)">No orders found.</td></tr>`
+      ? `<tr><td colspan="6" style="text-align:center;color:var(--muted)">לא נמצאו הזמנות.</td></tr>`
       : data.orders.map(o => `
           <tr>
             <td>#${o.id}</td>
             <td><a href="/crm/customer-detail.html?id=${o.customer_id}">${esc(o.customer_name)}</a></td>
-            <td><span class="badge badge-${o.status}">${o.status}</span></td>
-            <td>$${Number(o.total || 0).toFixed(2)}</td>
-            <td>${new Date(o.created_at).toLocaleDateString()}</td>
+            <td><span class="badge badge-${o.status}">${statusHe[o.status] || o.status}</span></td>
+            <td>₪${Number(o.total || 0).toFixed(2)}</td>
+            <td>${new Date(o.created_at).toLocaleDateString('he-IL')}</td>
             <td>
               <button class="btn btn-outline btn-sm"
                 onclick="editOrder(${o.id}, '${o.status}', ${o.total || 0}, ${o.customer_id})"
-                aria-label="Edit order #${o.id}">Edit</button>
+                aria-label="ערוך הזמנה #${o.id}">ערוך</button>
             </td>
           </tr>`).join('');
 
     const total = data.total;
-    pageInfo.textContent = `${Math.min((page-1)*LIMIT+1, total)}–${Math.min(page*LIMIT, total)} of ${total}`;
+    pageInfo.textContent = `${Math.min((page-1)*LIMIT+1, total)}–${Math.min(page*LIMIT, total)} מתוך ${total}`;
     prevBtn.disabled = page === 1;
     nextBtn.disabled = page * LIMIT >= total;
     prevBtn.setAttribute('aria-disabled', prevBtn.disabled);
@@ -175,7 +180,6 @@
   prevBtn.addEventListener('click', () => { page--; loadOrders(); });
   nextBtn.addEventListener('click', () => { page++; loadOrders(); });
 
-  // Modal focus management
   let _returnFocus = null;
 
   function openModal(opener) {
@@ -186,34 +190,44 @@
 
   function closeModal() {
     modal.style.display = 'none';
+    alertEl.className = 'alert hidden';
     if (_returnFocus) _returnFocus.focus();
+  }
+
+  async function loadCustomersIntoSelect(selectedId) {
+    const res = await apiFetch('/api/customers?limit=200');
+    const data = await res.json();
+    const select = document.getElementById('oCustomerId');
+    select.innerHTML = '<option value="">בחר לקוח...</option>' +
+      data.customers.map(c => `<option value="${c.id}"${c.id == selectedId ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
   }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
   });
 
-  document.getElementById('addBtn').addEventListener('click', (e) => {
-    document.getElementById('modalTitle').textContent = 'New Order';
+  document.getElementById('addBtn').addEventListener('click', async (e) => {
+    document.getElementById('modalTitle').textContent = 'הזמנה חדשה';
     form.reset();
     document.getElementById('orderId').value = '';
+    await loadCustomersIntoSelect(null);
     openModal(e.currentTarget);
   });
   document.getElementById('cancelBtn').addEventListener('click', closeModal);
 
-  window.editOrder = (id, status, total, customerId) => {
-    document.getElementById('modalTitle').textContent = 'Edit Order';
-    document.getElementById('orderId').value       = id;
-    document.getElementById('oCustomerId').value   = customerId;
-    document.getElementById('oStatus').value       = status;
-    document.getElementById('oTotal').value        = total;
-    openModal(document.querySelector(`[aria-label="Edit order #${id}"]`));
+  window.editOrder = async (id, status, total, customerId) => {
+    document.getElementById('modalTitle').textContent = 'ערוך הזמנה';
+    document.getElementById('orderId').value  = id;
+    document.getElementById('oStatus').value  = status;
+    document.getElementById('oTotal').value   = total;
+    await loadCustomersIntoSelect(customerId);
+    openModal(document.querySelector(`[aria-label="ערוך הזמנה #${id}"]`));
   };
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const id     = document.getElementById('orderId').value;
-    const body   = {
+    const id   = document.getElementById('orderId').value;
+    const body = {
       customer_id: parseInt(document.getElementById('oCustomerId').value),
       status:      document.getElementById('oStatus').value,
       total:       parseFloat(document.getElementById('oTotal').value) || 0,
@@ -224,6 +238,10 @@
     if (res.ok) {
       closeModal();
       loadOrders();
+    } else {
+      const data = await res.json();
+      alertEl.textContent = data.message || 'שגיאה בשמירה';
+      alertEl.className = 'alert alert-error';
     }
   });
 

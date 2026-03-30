@@ -20,8 +20,10 @@
 
 /* ── RTL support ───────────────────────────────────── */
 [dir="rtl"] body { font-family: 'Segoe UI', 'Arial Hebrew', system-ui, sans-serif; }
+[dir="rtl"] .sidebar { border-right: none; border-left: 1px solid var(--border); }
 [dir="rtl"] .sidebar a { border-left: none; border-right: 3px solid transparent; }
 [dir="rtl"] .sidebar a:hover, [dir="rtl"] .sidebar a.active { border-right-color: var(--primary); border-left-color: transparent; }
+[dir="rtl"] thead th { text-align: right; }
 
 :root {
   --primary:   #2563eb;

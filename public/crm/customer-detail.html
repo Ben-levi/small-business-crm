@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CRM — Customer Detail</title>
+  <title>CRM — פרטי לקוח</title>
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://browser.sentry-cdn.com/8.44.0/bundle.min.js" crossorigin="anonymous"></script>
   <script>
@@ -13,44 +13,44 @@
 </head>
 <body>
 
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#main-content" class="skip-link">דלג לתוכן הראשי</a>
 
-<nav aria-label="Main navigation">
-  <span class="logo">MyBusiness CRM</span>
+<nav aria-label="ניווט ראשי">
+  <span class="logo">CRM העסק שלי</span>
   <ul>
-    <li><a href="/" target="_blank">Public site ↗</a></li>
-    <li><a href="#" id="logoutBtn">Logout</a></li>
+    <li><a href="/" target="_blank">אתר הבית ↗</a></li>
+    <li><a href="#" id="logoutBtn">יציאה</a></li>
   </ul>
 </nav>
 
 <div class="crm-layout">
-  <aside class="sidebar" aria-label="CRM navigation">
-    <a href="/crm/customers.html">Customers</a>
-    <a href="/crm/orders.html">Orders</a>
+  <aside class="sidebar" aria-label="ניווט CRM">
+    <a href="/crm/customers.html">לקוחות</a>
+    <a href="/crm/orders.html">הזמנות</a>
   </aside>
 
   <main class="crm-main" id="main-content" tabindex="-1">
-    <a href="/crm/customers.html" style="font-size:.9rem;color:var(--muted);">← Back to Customers</a>
+    <a href="/crm/customers.html" style="font-size:.9rem;color:var(--muted);">→ חזרה ללקוחות</a>
 
     <div id="customerInfo" style="margin:1.5rem 0;">
-      <p style="color:var(--muted)">Loading…</p>
+      <p style="color:var(--muted)">טוען...</p>
     </div>
 
-    <h3 style="margin-bottom:1rem;">Orders</h3>
+    <h3 style="margin-bottom:1rem;">הזמנות</h3>
     <div class="card">
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th scope="col">#</th>
-              <th scope="col">Status</th>
-              <th scope="col">Total</th>
-              <th scope="col">Date</th>
-              <th scope="col"><span class="visually-hidden">Actions</span></th>
+              <th scope="col">סטטוס</th>
+              <th scope="col">סכום</th>
+              <th scope="col">תאריך</th>
+              <th scope="col"><span class="visually-hidden">פעולות</span></th>
             </tr>
           </thead>
           <tbody id="ordersTbody">
-            <tr><td colspan="5" style="text-align:center;color:var(--muted)">Loading…</td></tr>
+            <tr><td colspan="5" style="text-align:center;color:var(--muted)">טוען...</td></tr>
           </tbody>
         </table>
       </div>
@@ -67,6 +67,9 @@
   const id = new URLSearchParams(location.search).get('id');
   if (!id) window.location.href = '/crm/customers.html';
 
+  const statusHe = { pending: 'ממתין', processing: 'בעיבוד', shipped: 'נשלח', delivered: 'נמסר' };
+  const sourceHe = { manual: 'ידני', contact_form: 'טופס יצירת קשר' };
+
   function esc(str) {
     return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
@@ -81,26 +84,26 @@
       <div class="card" style="max-width:600px;">
         <h2 style="margin-bottom:1rem;">${esc(data.name)}</h2>
         <table style="width:auto;font-size:.95rem;">
-          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Email</td><td>${esc(data.email || '—')}</td></tr>
-          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Phone</td><td>${esc(data.phone || '—')}</td></tr>
-          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Address</td><td>${esc(data.address || '—')}</td></tr>
-          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Source</td><td><span class="badge badge-processing">${esc(data.source)}</span></td></tr>
-          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Notes</td><td>${esc(data.notes || '—')}</td></tr>
-          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Since</td><td>${new Date(data.created_at).toLocaleDateString()}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">אימייל</td><td>${esc(data.email || '—')}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">טלפון</td><td>${esc(data.phone || '—')}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">כתובת</td><td>${esc(data.address || '—')}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">מקור</td><td><span class="badge badge-processing">${esc(sourceHe[data.source] || data.source)}</span></td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">הערות</td><td>${esc(data.notes || '—')}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">לקוח מאז</td><td>${new Date(data.created_at).toLocaleDateString('he-IL')}</td></tr>
         </table>
       </div>`;
 
     const tbody = document.getElementById('ordersTbody');
     tbody.innerHTML = !data.orders?.length
-      ? `<tr><td colspan="5" style="text-align:center;color:var(--muted)">No orders yet.</td></tr>`
+      ? `<tr><td colspan="5" style="text-align:center;color:var(--muted)">אין הזמנות עדיין.</td></tr>`
       : data.orders.map(o => `
           <tr>
             <td>#${o.id}</td>
-            <td><span class="badge badge-${o.status}">${o.status}</span></td>
-            <td>$${Number(o.total || 0).toFixed(2)}</td>
-            <td>${new Date(o.created_at).toLocaleDateString()}</td>
+            <td><span class="badge badge-${o.status}">${statusHe[o.status] || o.status}</span></td>
+            <td>₪${Number(o.total || 0).toFixed(2)}</td>
+            <td>${new Date(o.created_at).toLocaleDateString('he-IL')}</td>
             <td>
-              <a href="/crm/orders.html" class="btn btn-outline btn-sm">View all</a>
+              <a href="/crm/orders.html" class="btn btn-outline btn-sm">צפה בכל</a>
             </td>
           </tr>`).join('');
   }
