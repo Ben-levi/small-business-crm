@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM — Orders</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://browser.sentry-cdn.com/8.44.0/bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    const _sentryDsn = '';
+    if (_sentryDsn) Sentry.init({ dsn: _sentryDsn, tracesSampleRate: 0.2 });
+  </script>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<nav aria-label="Main navigation">
+  <span class="logo">MyBusiness CRM</span>
+  <ul>
+    <li><a href="/" target="_blank">Public site ↗</a></li>
+    <li><a href="#" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
+
+<div class="crm-layout">
+  <aside class="sidebar" aria-label="CRM navigation">
+    <a href="/crm/customers.html">Customers</a>
+    <a href="/crm/orders.html" class="active" aria-current="page">Orders</a>
+  </aside>
+
+  <main class="crm-main" id="main-content" tabindex="-1">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+      <h2 style="font-size:1.5rem;">Orders</h2>
+      <button class="btn btn-primary btn-sm" id="addBtn">+ New Order</button>
+    </div>
+
+    <div class="toolbar" role="search" aria-label="Filter orders">
+      <label for="statusFilter" class="visually-hidden">Filter by status</label>
+      <select id="statusFilter" aria-label="Filter by status">
+        <option value="">All statuses</option>
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+      </select>
+      <input type="date" id="fromDate" aria-label="From date" title="From date" />
+      <input type="date" id="toDate"   aria-label="To date"   title="To date" />
+    </div>
+
+    <div id="alert" class="alert hidden" role="alert" aria-live="polite"></div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table aria-label="Orders list">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Status</th>
+              <th scope="col">Total</th>
+              <th scope="col">Date</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="ordersTbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <nav class="pagination" aria-label="Orders pagination">
+        <span id="pageInfo" aria-live="polite"></span>
+        <button id="prevBtn" disabled aria-label="Previous page">← Prev</button>
+        <button id="nextBtn" disabled aria-label="Next page">Next →</button>
+      </nav>
+    </div>
+  </main>
+</div>
+
+<!-- New/Edit Order Modal -->
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;">
+  <div class="card" style="width:100%;max-width:480px;margin:1rem;">
+    <h3 id="modalTitle" style="margin-bottom:1rem;">New Order</h3>
+    <form id="orderForm">
+      <input type="hidden" id="orderId" />
+      <div class="form-group">
+        <label for="oCustomerId">Customer ID</label>
+        <input type="number" id="oCustomerId" required aria-required="true" placeholder="Enter customer ID" />
+      </div>
+      <div class="form-group">
+        <label for="oStatus">Status</label>
+        <select id="oStatus">
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="oTotal">Total ($)</label>
+        <input type="number" id="oTotal" min="0" step="0.01" placeholder="0.00" />
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button type="button" class="btn btn-outline" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import { requireAuth, apiFetch, logout } from '/js/crm/auth.js';
+  requireAuth();
+
+  document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+  const tbody    = document.getElementById('ordersTbody');
+  const prevBtn  = document.getElementById('prevBtn');
+  const nextBtn  = document.getElementById('nextBtn');
+  const pageInfo = document.getElementById('pageInfo');
+  const modal    = document.getElementById('modal');
+  const form     = document.getElementById('orderForm');
+
+  let page = 1;
+  const LIMIT = 15;
+
+  function buildQuery() {
+    const status = document.getElementById('statusFilter').value;
+    const from   = document.getElementById('fromDate').value;
+    const to     = document.getElementById('toDate').value;
+    const params = new URLSearchParams({ page, limit: LIMIT });
+    if (status) params.set('status', status);
+    if (from)   params.set('from', from);
+    if (to)     params.set('to', to);
+    return params.toString();
+  }
+
+  async function loadOrders() {
+    const res  = await apiFetch(`/api/orders?${buildQuery()}`);
+    const data = await res.json();
+
+    tbody.innerHTML = data.orders.length === 0
+      ? `<tr><td colspan="6" style="text-align:center;color:var(--muted)">No orders found.</td></tr>`
+      : data.orders.map(o => `
+          <tr>
+            <td>#${o.id}</td>
+            <td><a href="/crm/customer-detail.html?id=${o.customer_id}">${esc(o.customer_name)}</a></td>
+            <td><span class="badge badge-${o.status}">${o.status}</span></td>
+            <td>$${Number(o.total || 0).toFixed(2)}</td>
+            <td>${new Date(o.created_at).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-outline btn-sm"
+                onclick="editOrder(${o.id}, '${o.status}', ${o.total || 0}, ${o.customer_id})"
+                aria-label="Edit order #${o.id}">Edit</button>
+            </td>
+          </tr>`).join('');
+
+    const total = data.total;
+    pageInfo.textContent = `${Math.min((page-1)*LIMIT+1, total)}–${Math.min(page*LIMIT, total)} of ${total}`;
+    prevBtn.disabled = page === 1;
+    nextBtn.disabled = page * LIMIT >= total;
+    prevBtn.setAttribute('aria-disabled', prevBtn.disabled);
+    nextBtn.setAttribute('aria-disabled', nextBtn.disabled);
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  ['statusFilter','fromDate','toDate'].forEach(id =>
+    document.getElementById(id).addEventListener('change', () => { page = 1; loadOrders(); })
+  );
+
+  prevBtn.addEventListener('click', () => { page--; loadOrders(); });
+  nextBtn.addEventListener('click', () => { page++; loadOrders(); });
+
+  // Modal focus management
+  let _returnFocus = null;
+
+  function openModal(opener) {
+    _returnFocus = opener || document.activeElement;
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('oCustomerId').focus(), 50);
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+    if (_returnFocus) _returnFocus.focus();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+  });
+
+  document.getElementById('addBtn').addEventListener('click', (e) => {
+    document.getElementById('modalTitle').textContent = 'New Order';
+    form.reset();
+    document.getElementById('orderId').value = '';
+    openModal(e.currentTarget);
+  });
+  document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+  window.editOrder = (id, status, total, customerId) => {
+    document.getElementById('modalTitle').textContent = 'Edit Order';
+    document.getElementById('orderId').value       = id;
+    document.getElementById('oCustomerId').value   = customerId;
+    document.getElementById('oStatus').value       = status;
+    document.getElementById('oTotal').value        = total;
+    openModal(document.querySelector(`[aria-label="Edit order #${id}"]`));
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id     = document.getElementById('orderId').value;
+    const body   = {
+      customer_id: parseInt(document.getElementById('oCustomerId').value),
+      status:      document.getElementById('oStatus').value,
+      total:       parseFloat(document.getElementById('oTotal').value) || 0,
+    };
+    const method = id ? 'PUT' : 'POST';
+    const url    = id ? `/api/orders/${id}` : '/api/orders';
+    const res    = await apiFetch(url, { method, body: JSON.stringify(body) });
+    if (res.ok) {
+      closeModal();
+      loadOrders();
+    }
+  });
+
+  loadOrders();
+</script>
+</body>
+</html>

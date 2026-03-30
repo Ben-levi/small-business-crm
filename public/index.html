@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>העסק שלי — דף הבית</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://browser.sentry-cdn.com/8.44.0/bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    // Paste your DSN from sentry.io → Project → Settings → Client Keys
+    const _sentryDsn = '';
+    if (_sentryDsn) Sentry.init({ dsn: _sentryDsn, tracesSampleRate: 0.2 });
+  </script>
+</head>
+<body>
+
+<nav>
+  <span class="logo">העסק שלי</span>
+  <ul>
+    <li><a href="/index.html" class="active">בית</a></li>
+    <li><a href="/about.html">אודות</a></li>
+    <li><a href="/services.html">שירותים</a></li>
+    <li><a href="/contact.html">צור קשר</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <h1>ברוכים הבאים לעסק שלי</h1>
+  <p>אנו מספקים פתרונות איכותיים המותאמים לצרכים שלך.</p>
+  <a href="/contact.html" class="btn btn-outline">צור קשר</a>
+  &nbsp;
+  <a href="/services.html" class="btn btn-primary">השירותים שלנו</a>
+</div>
+
+<div class="container">
+  <section>
+    <h2>למה לבחור בנו?</h2>
+    <p class="lead">אנו משלבים ניסיון, מסירות ומגע אישי כדי לעזור לעסק שלך לצמוח.</p>
+    <div class="cards-grid">
+      <div class="card">
+        <h3>✅ אמינות</h3>
+        <p>אנו מספקים בזמן, בכל פעם. הרקורד שלנו מדבר בעד עצמו.</p>
+      </div>
+      <div class="card">
+        <h3>💡 חדשנות</h3>
+        <p>אנו נשארים בחזית כך שאתה לא צריך.</p>
+      </div>
+      <div class="card">
+        <h3>🤝 אישיות</h3>
+        <p>כל לקוח הוא ייחודי. אנו מתאימים את הגישה שלנו למטרות שלך.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>מוכנים להתחיל?</h2>
+    <p class="lead">שלחו לנו הודעה ונחזור אליכם תוך יום עסקים אחד.</p>
+    <br />
+    <a href="/contact.html" class="btn btn-primary">צור קשר</a>
+  </section>
+</div>
+
+<footer>
+  &copy; 2025 העסק שלי. כל הזכויות שמורות.
+</footer>
+
+<!-- Vercel Analytics — auto-activates on Vercel, no-op locally -->
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

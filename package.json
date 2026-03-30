@@ -1,0 +1,19 @@
+{
+  "name": "small-business-crm",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev":   "node dev-server.js",
+    "serve": "npx serve public -l 3000",
+    "test":  "node test.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "resend": "^4.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^34.0.0"
+  }
+}

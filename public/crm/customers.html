@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM — Customers</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://browser.sentry-cdn.com/8.44.0/bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    const _sentryDsn = '';
+    if (_sentryDsn) Sentry.init({ dsn: _sentryDsn, tracesSampleRate: 0.2 });
+  </script>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<nav aria-label="Main navigation">
+  <span class="logo">MyBusiness CRM</span>
+  <ul>
+    <li><a href="/" target="_blank">Public site ↗</a></li>
+    <li><a href="#" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
+
+<div class="crm-layout">
+  <aside class="sidebar" aria-label="CRM navigation">
+    <a href="/crm/customers.html" class="active" aria-current="page">Customers</a>
+    <a href="/crm/orders.html">Orders</a>
+  </aside>
+
+  <main class="crm-main" id="main-content" tabindex="-1">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+      <h2 style="font-size:1.5rem;">Customers</h2>
+      <button class="btn btn-primary btn-sm" id="addBtn">+ Add Customer</button>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="Search by name or email…" aria-label="Search customers" />
+    </div>
+
+    <div id="alert" class="alert hidden" role="alert" aria-live="polite"></div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table aria-label="Customers list">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Phone</th>
+              <th scope="col">Source</th>
+              <th scope="col">Created</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="customersTbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <nav class="pagination" aria-label="Customers pagination">
+        <span id="pageInfo" aria-live="polite"></span>
+        <button id="prevBtn" disabled aria-label="Previous page">← Prev</button>
+        <button id="nextBtn" disabled aria-label="Next page">Next →</button>
+      </nav>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;">
+  <div class="card" style="width:100%;max-width:480px;margin:1rem;">
+    <h3 id="modalTitle" style="margin-bottom:1rem;">Add Customer</h3>
+    <form id="customerForm">
+      <input type="hidden" id="customerId" />
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cName">Name *</label>
+          <input type="text" id="cName" required aria-required="true" />
+        </div>
+        <div class="form-group">
+          <label for="cEmail">Email</label>
+          <input type="email" id="cEmail" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cPhone">Phone</label>
+          <input type="text" id="cPhone" />
+        </div>
+        <div class="form-group">
+          <label for="cAddress">Address</label>
+          <input type="text" id="cAddress" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="cNotes">Notes</label>
+        <textarea id="cNotes"></textarea>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button type="button" class="btn btn-outline" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import { requireAuth, apiFetch, logout } from '/js/crm/auth.js';
+  requireAuth();
+
+  document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+  const tbody   = document.getElementById('customersTbody');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const pageInfo = document.getElementById('pageInfo');
+  const alertEl  = document.getElementById('alert');
+  const modal    = document.getElementById('modal');
+  const form     = document.getElementById('customerForm');
+
+  let page = 1;
+  const LIMIT = 15;
+  let searchTimer;
+
+  async function loadCustomers() {
+    const search = document.getElementById('searchInput').value;
+    const res  = await apiFetch(`/api/customers?search=${encodeURIComponent(search)}&page=${page}&limit=${LIMIT}`);
+    const data = await res.json();
+
+    tbody.innerHTML = data.customers.length === 0
+      ? `<tr><td colspan="6" style="text-align:center;color:var(--muted)">No customers found.</td></tr>`
+      : data.customers.map(c => `
+          <tr>
+            <td><a href="/crm/customer-detail.html?id=${c.id}">${esc(c.name)}</a></td>
+            <td>${esc(c.email || '—')}</td>
+            <td>${esc(c.phone || '—')}</td>
+            <td><span class="badge badge-${c.source === 'contact_form' ? 'processing' : 'delivered'}">${esc(c.source)}</span></td>
+            <td>${new Date(c.created_at).toLocaleDateString()}</td>
+            <td style="white-space:nowrap;">
+              <button class="btn btn-outline btn-sm" onclick="editCustomer(${c.id})" aria-label="Edit ${esc(c.name)}">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})" aria-label="Delete ${esc(c.name)}">Delete</button>
+            </td>
+          </tr>`).join('');
+
+    const total = data.total;
+    pageInfo.textContent = `${Math.min((page-1)*LIMIT+1, total)}–${Math.min(page*LIMIT, total)} of ${total}`;
+    prevBtn.disabled = page === 1;
+    nextBtn.disabled = page * LIMIT >= total;
+    prevBtn.setAttribute('aria-disabled', prevBtn.disabled);
+    nextBtn.setAttribute('aria-disabled', nextBtn.disabled);
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  document.getElementById('searchInput').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { page = 1; loadCustomers(); }, 300);
+  });
+
+  prevBtn.addEventListener('click', () => { page--; loadCustomers(); });
+  nextBtn.addEventListener('click', () => { page++; loadCustomers(); });
+
+  // Modal focus management
+  let _returnFocus = null;
+
+  function openModal(opener) {
+    _returnFocus = opener || document.activeElement;
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('cName').focus(), 50);
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+    if (_returnFocus) _returnFocus.focus();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+  });
+
+  document.getElementById('addBtn').addEventListener('click', (e) => {
+    document.getElementById('modalTitle').textContent = 'Add Customer';
+    form.reset();
+    document.getElementById('customerId').value = '';
+    openModal(e.currentTarget);
+  });
+  document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+  // Edit
+  window.editCustomer = async (id) => {
+    const res  = await apiFetch(`/api/customers/${id}`);
+    const data = await res.json();
+    document.getElementById('modalTitle').textContent = 'Edit Customer';
+    document.getElementById('customerId').value = id;
+    document.getElementById('cName').value    = data.name    || '';
+    document.getElementById('cEmail').value   = data.email   || '';
+    document.getElementById('cPhone').value   = data.phone   || '';
+    document.getElementById('cAddress').value = data.address || '';
+    document.getElementById('cNotes').value   = data.notes   || '';
+    openModal(document.querySelector(`[aria-label="Edit ${esc(data.name)}"]`));
+  };
+
+  // Delete
+  window.deleteCustomer = async (id) => {
+    if (!confirm('Delete this customer and all their orders?')) return;
+    await apiFetch(`/api/customers/${id}`, { method: 'DELETE' });
+    loadCustomers();
+  };
+
+  // Save (add or edit)
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('customerId').value;
+    const body = {
+      name:    document.getElementById('cName').value,
+      email:   document.getElementById('cEmail').value,
+      phone:   document.getElementById('cPhone').value,
+      address: document.getElementById('cAddress').value,
+      notes:   document.getElementById('cNotes').value,
+    };
+    const method = id ? 'PUT' : 'POST';
+    const url    = id ? `/api/customers/${id}` : '/api/customers';
+    const res    = await apiFetch(url, { method, body: JSON.stringify(body) });
+    if (res.ok) {
+      closeModal();
+      loadCustomers();
+    } else {
+      const data = await res.json();
+      alertEl.textContent = data.message;
+      alertEl.className = 'alert alert-error';
+    }
+  });
+
+  loadCustomers();
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM — Customer Detail</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://browser.sentry-cdn.com/8.44.0/bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    const _sentryDsn = '';
+    if (_sentryDsn) Sentry.init({ dsn: _sentryDsn, tracesSampleRate: 0.2 });
+  </script>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<nav aria-label="Main navigation">
+  <span class="logo">MyBusiness CRM</span>
+  <ul>
+    <li><a href="/" target="_blank">Public site ↗</a></li>
+    <li><a href="#" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
+
+<div class="crm-layout">
+  <aside class="sidebar" aria-label="CRM navigation">
+    <a href="/crm/customers.html">Customers</a>
+    <a href="/crm/orders.html">Orders</a>
+  </aside>
+
+  <main class="crm-main" id="main-content" tabindex="-1">
+    <a href="/crm/customers.html" style="font-size:.9rem;color:var(--muted);">← Back to Customers</a>
+
+    <div id="customerInfo" style="margin:1.5rem 0;">
+      <p style="color:var(--muted)">Loading…</p>
+    </div>
+
+    <h3 style="margin-bottom:1rem;">Orders</h3>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Status</th>
+              <th scope="col">Total</th>
+              <th scope="col">Date</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="ordersTbody">
+            <tr><td colspan="5" style="text-align:center;color:var(--muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { requireAuth, apiFetch, logout } from '/js/crm/auth.js';
+  requireAuth();
+
+  document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) window.location.href = '/crm/customers.html';
+
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  async function load() {
+    const res  = await apiFetch(`/api/customers/${id}`);
+    const data = await res.json();
+
+    document.title = `CRM — ${data.name}`;
+
+    document.getElementById('customerInfo').innerHTML = `
+      <div class="card" style="max-width:600px;">
+        <h2 style="margin-bottom:1rem;">${esc(data.name)}</h2>
+        <table style="width:auto;font-size:.95rem;">
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Email</td><td>${esc(data.email || '—')}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Phone</td><td>${esc(data.phone || '—')}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Address</td><td>${esc(data.address || '—')}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Source</td><td><span class="badge badge-processing">${esc(data.source)}</span></td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Notes</td><td>${esc(data.notes || '—')}</td></tr>
+          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">Since</td><td>${new Date(data.created_at).toLocaleDateString()}</td></tr>
+        </table>
+      </div>`;
+
+    const tbody = document.getElementById('ordersTbody');
+    tbody.innerHTML = !data.orders?.length
+      ? `<tr><td colspan="5" style="text-align:center;color:var(--muted)">No orders yet.</td></tr>`
+      : data.orders.map(o => `
+          <tr>
+            <td>#${o.id}</td>
+            <td><span class="badge badge-${o.status}">${o.status}</span></td>
+            <td>$${Number(o.total || 0).toFixed(2)}</td>
+            <td>${new Date(o.created_at).toLocaleDateString()}</td>
+            <td>
+              <a href="/crm/orders.html" class="btn btn-outline btn-sm">View all</a>
+            </td>
+          </tr>`).join('');
+  }
+
+  load();
+</script>
+</body>
+</html>
