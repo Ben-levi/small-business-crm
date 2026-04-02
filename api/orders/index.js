@@ -15,20 +15,20 @@ export default async function handler(req, res) {
         FROM orders o
         JOIN customers c ON c.id = o.customer_id
         WHERE
-          (${status      || null} IS NULL OR o.status      = ${status      || null})
-          AND (${customer_id || null} IS NULL OR o.customer_id = ${parseInt(customer_id) || null})
-          AND (${from        || null} IS NULL OR o.created_at >= ${from        || null}::date)
-          AND (${to          || null} IS NULL OR o.created_at <= ${to          || null}::date)
+          (${status      || null}::text IS NULL OR o.status      = ${status      || null}::text)
+          AND (${customer_id || null}::int  IS NULL OR o.customer_id = ${parseInt(customer_id) || null}::int)
+          AND (${from        || null}::date IS NULL OR o.created_at >= ${from        || null}::date)
+          AND (${to          || null}::date IS NULL OR o.created_at <= ${to          || null}::date)
         ORDER BY o.created_at DESC
         LIMIT ${parseInt(limit)} OFFSET ${offset}
       `;
       const [{ count }] = await sql`
         SELECT COUNT(*) FROM orders o
         WHERE
-          (${status      || null} IS NULL OR o.status      = ${status      || null})
-          AND (${customer_id || null} IS NULL OR o.customer_id = ${parseInt(customer_id) || null})
-          AND (${from        || null} IS NULL OR o.created_at >= ${from        || null}::date)
-          AND (${to          || null} IS NULL OR o.created_at <= ${to          || null}::date)
+          (${status      || null}::text IS NULL OR o.status      = ${status      || null}::text)
+          AND (${customer_id || null}::int  IS NULL OR o.customer_id = ${parseInt(customer_id) || null}::int)
+          AND (${from        || null}::date IS NULL OR o.created_at >= ${from        || null}::date)
+          AND (${to          || null}::date IS NULL OR o.created_at <= ${to          || null}::date)
       `;
       return res.status(200).json({ orders: rows, total: parseInt(count) });
     } catch (err) {
