@@ -32,7 +32,10 @@
   <main class="crm-main" id="main-content" tabindex="-1">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
       <h2 style="font-size:1.5rem;">לקוחות</h2>
-      <button class="btn btn-primary btn-sm" id="addBtn">+ הוסף לקוח</button>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="btn btn-outline btn-sm" id="downloadBtn" title="הורד כ-CSV">📥 הורד</button>
+        <button class="btn btn-primary btn-sm" id="addBtn">+ הוסף לקוח</button>
+      </div>
     </div>
 
     <div class="toolbar">
@@ -190,6 +193,26 @@
     openModal(e.currentTarget);
   });
   document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+  document.getElementById('downloadBtn').addEventListener('click', async () => {
+    try {
+      const res = await apiFetch('/api/export/customers');
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'customers.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (err) {
+      alertEl.textContent = 'שגיאה בהורדה: ' + err.message;
+      alertEl.className = 'alert alert-error';
+    }
+  });
 
   window.editCustomer = async (id) => {
     const res  = await apiFetch(`/api/customers/${id}`);
