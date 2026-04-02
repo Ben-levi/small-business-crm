@@ -1,7 +1,7 @@
 # AVI CRM — Project Backlog & Progress Log
 
 > Full development history, session notes, and pending work.
-> Last updated: **2026-03-25**
+> Last updated: **2026-04-03**
 
 ---
 
@@ -249,7 +249,40 @@ AVI CRM/
 
 ---
 
-## Pending Work — Phase 4
+---
+
+### Phase 4 — Git, Deployment & Hebrew CRM *(2026-04-03)*
+
+**Motivation:** Project existed only as local files with no version control and no live deployment.
+
+**Changes made:**
+
+| Area | Change |
+|---|---|
+| **Git** | Initialized repository, created `.gitignore` (node_modules, .env, .vercel), made initial commit |
+| **GitHub** | Created private repo `Ben-levi/small-business-crm`, pushed all code |
+| **Vercel** | Linked GitHub repo, configured 7 env vars, deployed to `https://project-a35vl.vercel.app` |
+| `vercel.json` | Removed invalid `"public": "public"` field that was failing schema validation |
+| `schema.sql` | Fixed seed admin password hash — original hash was for `"password"` not `"admin123"` |
+| **CRM UI** | Translated all 4 CRM pages to Hebrew (RTL): login, customers, orders, customer-detail |
+| `public/css/style.css` | Added RTL fixes: sidebar border flips, table header text-align |
+| `public/crm/login.html` | Hebrew: כניסה למערכת, אימייל, סיסמה, כניסה |
+| `public/crm/customers.html` | Full Hebrew translation; dates in `he-IL` locale; source labels translated (ידני / טופס יצירת קשר) |
+| `public/crm/orders.html` | Full Hebrew translation; ₪ instead of $; status labels in Hebrew; **replaced Customer ID input with customer name dropdown**; error display moved inside modal; try/catch on form submit |
+| `public/crm/customer-detail.html` | Full Hebrew translation; status/source labels translated |
+| `public/index.html` | Added CRM link in public homepage nav |
+| `api/orders/index.js` | Fixed POST to save `status` field (was ignored before); added explicit `::text`/`::int`/`::date` type casts on all WHERE parameters to fix `"could not determine data type of parameter $1"` PostgreSQL error; wrapped GET in try/catch to return DB errors as JSON |
+
+**State after phase:**
+- ✅ Live at `https://project-a35vl.vercel.app`
+- ✅ Auto-deploys on every `git push` to `main`
+- ✅ Entire CRM UI in Hebrew with full RTL layout
+- ✅ Orders page loads and saves correctly
+- ✅ Add/edit order uses customer name dropdown (no more manual ID entry)
+
+---
+
+## Pending Work — Phase 5
 
 ### High Priority
 - [ ] **CRM Dashboard** — home page with stats: total customers, orders by status, revenue, recent activity
