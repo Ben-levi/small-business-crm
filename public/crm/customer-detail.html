@@ -68,7 +68,6 @@
   if (!id) window.location.href = '/crm/customers.html';
 
   const statusHe = { pending: 'ממתין', processing: 'בעיבוד', shipped: 'נשלח', delivered: 'נמסר' };
-  const sourceHe = { manual: 'ידני', contact_form: 'טופס יצירת קשר' };
 
   function esc(str) {
     return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -87,7 +86,6 @@
           <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">אימייל</td><td>${esc(data.email || '—')}</td></tr>
           <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">טלפון</td><td>${esc(data.phone || '—')}</td></tr>
           <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">כתובת</td><td>${esc(data.address || '—')}</td></tr>
-          <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">מקור</td><td><span class="badge badge-processing">${esc(sourceHe[data.source] || data.source)}</span></td></tr>
           <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">הערות</td><td>${esc(data.notes || '—')}</td></tr>
           <tr><td style="padding:.3rem 1rem .3rem 0;color:var(--muted);font-weight:600;">לקוח מאז</td><td>${new Date(data.created_at).toLocaleDateString('he-IL')}</td></tr>
         </table>
