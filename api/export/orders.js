@@ -37,9 +37,13 @@ export default async function handler(req, res) {
       ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
 
+    // Add UTF-8 BOM so Excel recognizes Hebrew characters
+    const bom = Buffer.from([0xEF, 0xBB, 0xBF]);
+    const csvBuffer = Buffer.concat([bom, Buffer.from(csv, 'utf-8')]);
+
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="orders.csv"');
-    return res.status(200).send(csv);
+    return res.status(200).send(csvBuffer);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
