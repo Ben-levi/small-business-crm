@@ -1,7 +1,7 @@
 # AVI CRM — Project Backlog & Progress Log
 
 > Full development history, session notes, and pending work.
-> Last updated: **2026-04-03**
+> Last updated: **2026-04-03** (Phase 4 UI refinements)
 
 ---
 
@@ -279,6 +279,25 @@ AVI CRM/
 - ✅ Entire CRM UI in Hebrew with full RTL layout
 - ✅ Orders page loads and saves correctly
 - ✅ Add/edit order uses customer name dropdown (no more manual ID entry)
+
+---
+
+### Phase 4 — UI Refinements *(2026-04-03, same day)*
+
+**Motivation:** Improve visual hierarchy and text readability on public pages; ensure consistent button styling.
+
+**Changes made:**
+
+| File | Change |
+|---|---|
+| `public/about.html` | Changed section heading and lead text color from white to blue (#2563eb); changed background from white to light gray (#f8fafc) for better contrast |
+| `public/about.html` | Added new hero image (renamed from `Gemini_Generated_Image_iks28aiks28aiks2 (1).png` to `about-image.png` to fix display) |
+| `public/index.html` | Changed contact button on hero banner from outline style (`btn-outline`) to primary blue style (`btn-primary`), matching services button |
+
+**State after mini-phase:**
+- ✅ About page text now blue on light gray background (improved readability)
+- ✅ Hero banner buttons now consistent (both blue)
+- ✅ Image now displays on about page without filename encoding issues
 
 ---
 
