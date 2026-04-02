@@ -51,20 +51,23 @@
     <div id="alert" class="alert hidden" role="alert" aria-live="polite"></div>
 
     <div class="card">
-      <div class="table-wrap">
-        <table aria-label="רשימת הזמנות">
+      <div class="table-wrap" style="overflow-x: auto;">
+        <table aria-label="רשימת הזמנות" style="min-width: 1000px;">
           <thead>
             <tr>
               <th scope="col">#</th>
               <th scope="col">לקוח</th>
               <th scope="col">סטטוס</th>
               <th scope="col">סכום</th>
+              <th scope="col">חלקי סכום</th>
+              <th scope="col">תהליך</th>
+              <th scope="col">הערות</th>
               <th scope="col">תאריך</th>
               <th scope="col"><span class="visually-hidden">פעולות</span></th>
             </tr>
           </thead>
           <tbody id="ordersTbody">
-            <tr><td colspan="6" style="text-align:center;color:var(--muted)">טוען...</td></tr>
+            <tr><td colspan="9" style="text-align:center;color:var(--muted)">טוען...</td></tr>
           </tbody>
         </table>
       </div>
@@ -103,6 +106,18 @@
       <div class="form-group">
         <label for="oTotal">סכום (₪)</label>
         <input type="number" id="oTotal" min="0" step="0.01" placeholder="0.00" />
+      </div>
+      <div class="form-group">
+        <label for="oParts">חלקי סכום</label>
+        <input type="text" id="oParts" placeholder="לדוגמה: 500₪ עבודה, 200₪ חומרים" />
+      </div>
+      <div class="form-group">
+        <label for="oProcedure">תהליך</label>
+        <input type="text" id="oProcedure" placeholder="לדוגמה: בחיתוך, בהרכבה, בדיקה" />
+      </div>
+      <div class="form-group">
+        <label for="oNotes">הערות</label>
+        <textarea id="oNotes" style="resize:vertical;min-height:60px;"></textarea>
       </div>
       <div style="display:flex;gap:.75rem;justify-content:flex-end;">
         <button type="button" class="btn btn-outline" id="cancelBtn">ביטול</button>
@@ -149,22 +164,25 @@
       const data = await res.json();
 
       if (!res.ok) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger)">שגיאה: ${esc(data.message || res.status)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--danger)">שגיאה: ${esc(data.message || res.status)}</td></tr>`;
         return;
       }
 
       tbody.innerHTML = data.orders.length === 0
-        ? `<tr><td colspan="6" style="text-align:center;color:var(--muted)">לא נמצאו הזמנות.</td></tr>`
+        ? `<tr><td colspan="9" style="text-align:center;color:var(--muted)">לא נמצאו הזמנות.</td></tr>`
         : data.orders.map(o => `
             <tr>
               <td>#${o.id}</td>
               <td><a href="/crm/customer-detail.html?id=${o.customer_id}">${esc(o.customer_name)}</a></td>
               <td><span class="badge badge-${o.status}">${statusHe[o.status] || o.status}</span></td>
               <td>₪${Number(o.total || 0).toFixed(2)}</td>
+              <td>${esc(o.parts || '—')}</td>
+              <td>${esc(o.procedure || '—')}</td>
+              <td>${esc(o.notes || '—')}</td>
               <td>${new Date(o.created_at).toLocaleDateString('he-IL')}</td>
               <td>
                 <button class="btn btn-outline btn-sm"
-                  onclick="editOrder(${o.id}, '${o.status}', ${o.total || 0}, ${o.customer_id})"
+                  onclick="editOrder(${o.id}, '${o.status}', ${o.total || 0}, ${o.customer_id}, '${esc(o.parts || '')}', '${esc(o.procedure || '')}', '${esc(o.notes || '')}')"
                   aria-label="ערוך הזמנה #${o.id}">ערוך</button>
               </td>
             </tr>`).join('');
@@ -178,7 +196,7 @@
       prevBtn.setAttribute('aria-disabled', prevBtn.disabled);
       nextBtn.setAttribute('aria-disabled', nextBtn.disabled);
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger)">שגיאת טעינה: ${esc(String(err))}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--danger)">שגיאת טעינה: ${esc(String(err))}</td></tr>`;
     }
   }
 
@@ -229,12 +247,16 @@
   });
   document.getElementById('cancelBtn').addEventListener('click', closeModal);
 
-  window.editOrder = async (id, status, total, customerId) => {
+  window.editOrder = async (id, status, total, customerId, parts, procedure, notes) => {
     document.getElementById('modalTitle').textContent = 'ערוך הזמנה';
     document.getElementById('orderId').value  = id;
     document.getElementById('oStatus').value  = status;
     document.getElementById('oTotal').value   = total;
+    document.getElementById('oParts').value   = parts || '';
+    document.getElementById('oProcedure').value = procedure || '';
+    document.getElementById('oNotes').value   = notes || '';
     await loadCustomersIntoSelect(customerId);
+    document.getElementById('oCustomerId').value = customerId;
     openModal(document.querySelector(`[aria-label="ערוך הזמנה #${id}"]`));
   };
 
@@ -253,6 +275,9 @@
       customer_id: customerId,
       status:      document.getElementById('oStatus').value,
       total:       parseFloat(document.getElementById('oTotal').value) || 0,
+      parts:       document.getElementById('oParts').value,
+      procedure:   document.getElementById('oProcedure').value,
+      notes:       document.getElementById('oNotes').value,
     };
     const method = id ? 'PUT' : 'POST';
     const url    = id ? `/api/orders/${id}` : '/api/orders';

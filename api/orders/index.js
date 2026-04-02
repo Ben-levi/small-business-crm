@@ -37,12 +37,12 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { customer_id, status = 'pending', items, total } = req.body;
+    const { customer_id, status = 'pending', items, total, parts, procedure, notes } = req.body;
     if (!customer_id) return res.status(400).json({ message: 'customer_id is required' });
 
     const [order] = await sql`
-      INSERT INTO orders (customer_id, status, items, total)
-      VALUES (${customer_id}, ${status}, ${JSON.stringify(items || [])}::jsonb, ${total || 0})
+      INSERT INTO orders (customer_id, status, items, total, parts, procedure, notes)
+      VALUES (${customer_id}, ${status}, ${JSON.stringify(items || [])}::jsonb, ${total || 0}, ${parts || null}, ${procedure || null}, ${notes || null})
       RETURNING *
     `;
     return res.status(201).json(order);

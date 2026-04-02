@@ -18,12 +18,15 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'PUT') {
-    const { status, items, total } = req.body;
+    const { status, items, total, parts, procedure, notes } = req.body;
     const [updated] = await sql`
       UPDATE orders SET
         status     = COALESCE(${status || null}, status),
         items      = COALESCE(${items ? JSON.stringify(items) + '::jsonb' : null}, items),
         total      = COALESCE(${total  ?? null}, total),
+        parts      = COALESCE(${parts  || null}, parts),
+        procedure  = COALESCE(${procedure || null}, procedure),
+        notes      = COALESCE(${notes || null}, notes),
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *

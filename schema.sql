@@ -25,6 +25,9 @@ CREATE TABLE orders (
                 CHECK (status IN ('pending','processing','shipped','delivered')),
   items       JSONB,
   total       NUMERIC(10,2),
+  parts       TEXT,
+  procedure   TEXT,
+  notes       TEXT,
   created_at  TIMESTAMP DEFAULT NOW(),
   updated_at  TIMESTAMP DEFAULT NOW()
 );
