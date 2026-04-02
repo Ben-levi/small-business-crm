@@ -84,6 +84,7 @@
     <h3 id="modalTitle" style="margin-bottom:1rem;">הזמנה חדשה</h3>
     <form id="orderForm">
       <input type="hidden" id="orderId" />
+      <div id="modalAlert" class="alert hidden" role="alert" aria-live="assertive"></div>
       <div class="form-group">
         <label for="oCustomerId">לקוח</label>
         <select id="oCustomerId" required aria-required="true">
@@ -191,6 +192,7 @@
   function closeModal() {
     modal.style.display = 'none';
     alertEl.className = 'alert hidden';
+    document.getElementById('modalAlert').className = 'alert hidden';
     if (_returnFocus) _returnFocus.focus();
   }
 
@@ -226,22 +228,35 @@
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const modalAlert = document.getElementById('modalAlert');
+    modalAlert.className = 'alert hidden';
     const id   = document.getElementById('orderId').value;
+    const customerId = parseInt(document.getElementById('oCustomerId').value);
+    if (!customerId) {
+      modalAlert.textContent = 'יש לבחור לקוח';
+      modalAlert.className = 'alert alert-error';
+      return;
+    }
     const body = {
-      customer_id: parseInt(document.getElementById('oCustomerId').value),
+      customer_id: customerId,
       status:      document.getElementById('oStatus').value,
       total:       parseFloat(document.getElementById('oTotal').value) || 0,
     };
     const method = id ? 'PUT' : 'POST';
     const url    = id ? `/api/orders/${id}` : '/api/orders';
-    const res    = await apiFetch(url, { method, body: JSON.stringify(body) });
-    if (res.ok) {
-      closeModal();
-      loadOrders();
-    } else {
-      const data = await res.json();
-      alertEl.textContent = data.message || 'שגיאה בשמירה';
-      alertEl.className = 'alert alert-error';
+    try {
+      const res  = await apiFetch(url, { method, body: JSON.stringify(body) });
+      if (res.ok) {
+        closeModal();
+        loadOrders();
+      } else {
+        const data = await res.json();
+        modalAlert.textContent = data.message || 'שגיאה בשמירה';
+        modalAlert.className = 'alert alert-error';
+      }
+    } catch {
+      modalAlert.textContent = 'שגיאת רשת, נסה שוב';
+      modalAlert.className = 'alert alert-error';
     }
   });
 
